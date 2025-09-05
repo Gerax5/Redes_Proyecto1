@@ -2,48 +2,70 @@ package main
 
 import (
     "bufio"
+    "context"
     "fmt"
-    "os"
     "log"
-    "github.com/joho/godotenv"
+    "os"
+	"encoding/json"
     "strings"
-    "proyecto/llm"
-    "proyecto/session"
-    "proyecto/logger"
+	"github.com/joho/godotenv"
+	"proyecto/config"
+
+    ant "github.com/anthropics/anthropic-sdk-go"
+    "github.com/anthropics/anthropic-sdk-go/option"
 )
 
+
 func main() {
-    if err := godotenv.Load(); err != nil {
+	cfg, _ := config.Load("config.toml")
+
+	b, _ := json.MarshalIndent(cfg, "", "  ")
+	fmt.Println(string(b))
+
+	if err := godotenv.Load(); err != nil {
         log.Println("No se pudo cargar .env, usando variables de entorno del sistema")
     }
-    fmt.Println("Chatbot MCP!")
-    fmt.Println("Escribe 'exit' para salir.")
-    fmt.Println("Comando especial: youtube <channel_id> para analizar comunidad")
 
-    s := session.NewSession()
-    scanner := bufio.NewScanner(os.Stdin)
+	apiKey := os.Getenv("ANTHROPIC_API_KEY")
+	if apiKey == "" {
+		log.Fatal("❌ Falta ANTHROPIC_API_KEY en el entorno")
+	}
 
-    for {
-        fmt.Print(">>> ")
-        scanner.Scan()
-        input := strings.TrimSpace(scanner.Text())
+	claude := ant.NewClient(option.WithAPIKey(apiKey))
+	ctx := context.Background()
+	
+	history := []ant.MessageParam{}
+	reader := bufio.NewReader(os.Stdin)
 
-        if input == "exit" {
-            break
-        }
+	for {
+		fmt.Print(">>> ")
+		input, _ := reader.ReadString('\n')
+		input = strings.TrimSpace(input)
+		if input == "exit" {
+			break
+		}
 
-        s.AddMessage("user", input)
+		history = append(history, ant.NewUserMessage(ant.NewTextBlock(input)))
 
-        response, err := llm.QueryAnthropic(s.GetHistory())
-        if err != nil {
-            fmt.Println("Error:", err)
-            continue
-        }
+		resp, err := claude.Messages.New(ctx, ant.MessageNewParams{
+			Model:     ant.Model("claude-3-haiku-20240307"),
+			MaxTokens: 300,
+			Messages:  history,
+		})
+		if err != nil {
+			log.Println("Error:", err)
+			continue
+		}
 
-        s.AddMessage("assistant", response)
+		var answer string
+		for _, c := range resp.Content {
+			if t := c.AsText(); t.Text != "" {
+				answer = t.Text
+			}
+		}
 
-        fmt.Println("Claude:", response)
+		fmt.Println("Claude:", answer)
 
-        logger.SaveLog(input, response)
-    }
+		history = append(history, ant.NewAssistantMessage(ant.NewTextBlock(answer)))
+	}
 }
