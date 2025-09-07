@@ -30,4 +30,4 @@ url = "https://redes-remotemcpserver.fly.dev/mcp"
 [[mcp.servers]]
 name = "pokemon"
 type = "http"
-url = "http://localhost:8080/mcp"
+url = "https://redes-proyecto-mcp-673347929287.us-central1.run.app/mcp"
