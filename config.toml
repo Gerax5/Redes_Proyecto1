@@ -1,0 +1,7 @@
+[mcp]
+[[mcp.servers]]
+name = "youtube"              
+type = "stdio"    
+command = "Python3"                   
+args  = ["../MCP_Server/Server.py"]  
+
