@@ -1,6 +1,10 @@
+__pycache__
+
 .env
 config.doc
 dummy_mcp.py
 redes.py
 Sever.py
 mcp_debug.txt
+
+RemoteServer.zip
