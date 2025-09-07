@@ -194,6 +194,7 @@ func main() {
 			break
 		}
 
+		logger.SaveLog(input, "(esperando respuesta de Claude...)")
 		history = append(history, ant.NewUserMessage(ant.NewTextBlock(input)))
 
 		resp, err := claude.Messages.New(ctx, ant.MessageNewParams{
@@ -207,6 +208,7 @@ func main() {
 			continue
 		}
 
+		var answer string
 		for _, block := range resp.Content {
 			if t := block.AsText(); t.Text != "" {
 				answer = t.Text
@@ -223,6 +225,8 @@ func main() {
 					if c != toolToServer[toolUse.Name] {
 						continue
 					}
+
+					logger.SaveLog(fmt.Sprintf("CALL tool %s", toolUse.Name), inputJSON)
 					callRes, err := c.CallTool(ctx, mcp.CallToolRequest{
 						Params: mcp.CallToolParams{
 							Name:      toolUse.Name,
@@ -236,6 +240,7 @@ func main() {
 
 					toolResultText := fmt.Sprintf("Tool %s result: %+v", toolUse.Name, callRes)
 					history = append(history, ant.NewAssistantMessage(ant.NewTextBlock(toolResultText)))
+					logger.SaveLog(fmt.Sprintf("RESULT tool %s", toolUse.Name), toolResultText)
 
 					followUp, err := claude.Messages.New(ctx, ant.MessageNewParams{
 						Model:     ant.Model("claude-3-haiku-20240307"),
@@ -251,6 +256,7 @@ func main() {
 						if t := c.AsText(); t.Text != "" {
 							fmt.Println("Claude (análisis):", t.Text)
 							history = append(history, ant.NewAssistantMessage(ant.NewTextBlock(t.Text)))
+							logger.SaveLog(fmt.Sprintf("ANALYSIS tool %s", toolUse.Name), t.Text)
 						}
 					}
 				}
