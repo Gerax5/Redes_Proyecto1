@@ -11,7 +11,6 @@ import (
 
 	"github.com/joho/godotenv"
 	"proyecto/config"
-	"proyecto/logger"
 
 	ant "github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
@@ -85,6 +84,7 @@ func ConnectMCPHTTPServer(server config.MCPServer) (*client.Client, error) {
 }
 
 
+
 func main() {
 	cfg, errConfig := config.Load("config.toml")
 	if errConfig != nil {
@@ -92,18 +92,20 @@ func main() {
 		return
 	}
 
+	fmt.Printf("Config: %+v\n", cfg)
+
+
 	var mcpServers []*client.Client
 	var toolsDesc []string
 	var toolsForClaude []ant.ToolUnionParam 
-	toolToServer := map[string]*client.Client{}
 	ctx := context.Background()
 
 	for _, server := range cfg.MCP.Servers {
 		fmt.Printf("Servidor MCP: %s (%s)\n", server.Name, server.Type)
 
 		switch server.Type {
-		case "http":
-			fmt.Printf(" -> URL: %s\n", server.URL)
+			case "http":
+				fmt.Printf(" -> URL: %s\n", server.URL)
 				client, err := ConnectMCPHTTPServer(server)
 				if err != nil {
 					log.Fatal(err)
@@ -129,43 +131,37 @@ func main() {
 							},
 						},
 					})
-					
-					toolToServer[t.Name] = client
-
 				}
 
-		case "stdio":
-			client, err := ConnectMCPServer(server)
-			if err != nil {
-				log.Fatal(err)
-			}
-			mcpServers = append(mcpServers, client)
+			case "stdio":
+				client, err := ConnectMCPServer(server)
+				if err != nil {
+					log.Fatal(err)
+				}
+				mcpServers = append(mcpServers, client)
 
-			toolsRes, err := client.ListTools(ctx, mcp.ListToolsRequest{})
-			if err != nil {
-				log.Printf("error enviando tools/list a %s: %v", server.Name, err)
-				continue
-			}
-			for _, t := range toolsRes.Tools {
-				toolsDesc = append(toolsDesc,
-					fmt.Sprintf("- %s: %s", t.Name, t.Description))
+				toolsRes, err := client.ListTools(ctx, mcp.ListToolsRequest{})
+				if err != nil {
+					log.Printf("error enviando tools/list a %s: %v", server.Name, err)
+					continue
+				}
+				for _, t := range toolsRes.Tools {
+					toolsDesc = append(toolsDesc,
+						fmt.Sprintf("- %s: %s", t.Name, t.Description))
 
-				toolsForClaude = append(toolsForClaude, ant.ToolUnionParam{
-						OfTool: &ant.ToolParam{
-							Name:        t.Name,
-							Description: param.NewOpt(t.Description),
-							InputSchema: ant.ToolInputSchemaParam{
-								Required:   t.InputSchema.Required,
-								Properties: t.InputSchema.Properties,
-							},
-						},	
-				})
-
-				toolToServer[t.Name] = client
-			}
+					toolsForClaude = append(toolsForClaude, ant.ToolUnionParam{
+							OfTool: &ant.ToolParam{
+								Name:        t.Name,
+								Description: param.NewOpt(t.Description),
+								InputSchema: ant.ToolInputSchemaParam{
+									Required:   t.InputSchema.Required,
+									Properties: t.InputSchema.Properties,
+								},
+							},	
+					})
+				}
 		}
 	}
-
 
 	// debug config
 	b, _ := json.MarshalIndent(cfg, "", "  ")
@@ -209,30 +205,40 @@ func main() {
 
 		for _, block := range resp.Content {
 			if t := block.AsText(); t.Text != "" {
-				answer = t.Text
-				fmt.Println("Claude:", answer)
-				history = append(history, ant.NewAssistantMessage(ant.NewTextBlock(answer)))
-				logger.SaveLog(input, answer)
+				// respuesta normal de texto
+				fmt.Println("Claude:", t.Text)
+				history = append(history, ant.NewAssistantMessage(ant.NewTextBlock(t.Text)))
 			}
 
 			if toolUse := block.AsToolUse(); toolUse.Type == "tool_use" {
-				inputJSON := string(toolUse.Input)
-				fmt.Printf("Claude quiere usar tool: %s con input: %s\n", toolUse.Name, inputJSON)
+				fmt.Printf("Claude quiere usar tool: %s con input: %+v\n", toolUse.Name, toolUse.Input)
 
 				for _, c := range mcpServers {
-					if c != toolToServer[toolUse.Name] {
-						continue
-					}
-					callRes, err := c.CallTool(ctx, mcp.CallToolRequest{
-						Params: mcp.CallToolParams{
-							Name:      toolUse.Name,
-							Arguments: toolUse.Input,
-						},
-					})
-					if err != nil {
-						log.Printf("error ejecutando tool %s: %v", toolUse.Name, err)
-						continue
-					}
+					log.Println("➡️  Llamando a CallTool en servidor MCP...")
+					// callRes, err := c.CallTool(ctx, mcp.CallToolRequest{
+					// 	Params: mcp.CallToolParams{
+					// 		Name:      toolUse.Name,
+					// 		Arguments: toolUse.Input,
+					// 	},
+					// })
+					// if err != nil {
+					// 	log.Printf("error ejecutando tool %s: %v", toolUse.Name, err)
+					// 	continue
+					// }
+					req := mcp.CallToolRequest{
+    Params: mcp.CallToolParams{
+        Name:      toolUse.Name,
+        Arguments: toolUse.Input,
+    },
+}
+reqJSON, _ := json.MarshalIndent(req, "", "  ")
+log.Printf("➡️  Enviando CallTool a:\n%s", string(reqJSON))
+
+callRes, err := c.CallTool(ctx, req)
+if err != nil {
+    log.Printf("❌ Error en CallTool: %v", err)
+    continue
+}
 
 					toolResultText := fmt.Sprintf("Tool %s result: %+v", toolUse.Name, callRes)
 					history = append(history, ant.NewAssistantMessage(ant.NewTextBlock(toolResultText)))

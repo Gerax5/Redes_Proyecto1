@@ -4,4 +4,11 @@ name = "youtube"
 type = "stdio"    
 command = "Python3"                   
 args  = ["../MCP_Server/Server.py"]  
-
+[[mcp.servers]]
+name = "falvio"
+type = "http"
+url = "http://localhost:8080/mcp"
+[[mcp.servers]]
+name = "flavio2"
+type = "http"
+url = "https://redes-remotemcpserver.fly.dev/mcp"
