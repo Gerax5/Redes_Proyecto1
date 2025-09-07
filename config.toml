@@ -4,6 +4,23 @@ name = "youtube"
 type = "stdio"    
 command = "Python3"                   
 args  = ["../MCP_Server/Server.py"]  
+
+[[mcp.servers]]
+name = "filesystem"
+type = "stdio"
+command = "npx"
+args = [
+  "-y",
+  "@modelcontextprotocol/server-filesystem",
+  "C:/Users/Gerax/OneDrive/Desktop/UVGG/4-2/Redes/Proyecto"
+]
+
+[[mcp.servers]]
+name = "git"
+type = "stdio"
+command = "uvx"
+args = ["mcp-server-git"]
+
 [[mcp.servers]]
 name = "falvio"
 type = "http"
