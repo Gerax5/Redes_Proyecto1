@@ -2,6 +2,8 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 import requests
+import os
+import uvicorn
 
 app = FastAPI()
 
@@ -92,3 +94,12 @@ async def mcp_handler(request: Request):
         "id": req_id,
         "error": {"code": -32601, "message": f"Method {method} not found"}
     }
+
+
+@app.get("/")
+def root():
+    return {"message": "Hello from Pokemon MCP!"}
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080)) 
+    uvicorn.run(app, host="0.0.0.0", port=port) 
