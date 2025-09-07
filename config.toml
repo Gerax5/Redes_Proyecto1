@@ -1,6 +1,7 @@
 [mcp]
 [[mcp.servers]]
-name = "sumadora-http"              
-type = "http"                       
-url  = "http://127.0.0.1:3001/mcp"  
+name = "youtube"              
+type = "stdio"    
+command = "Python3"                   
+args  = ["../MCP_Server/Server.py"]  
 

@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/BurntSushi/toml v1.5.0 // indirect
-	github.com/anthropics/anthropic-sdk-go v1.9.1 // indirect
+	github.com/anthropics/anthropic-sdk-go v1.11.0 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
