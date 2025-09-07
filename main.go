@@ -11,6 +11,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"proyecto/config"
+	"proyecto/logger"
 
 	ant "github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
@@ -50,6 +51,40 @@ func ConnectMCPServer(server config.MCPServer) (*client.Client, error) {
 	return c, nil
 }
 
+func ConnectMCPHTTPServer(server config.MCPServer) (*client.Client, error) {
+    trans, err := transport.NewStreamableHTTP(
+				server.URL,
+			)
+	if err != nil {
+		fmt.Printf("Failed to connect to `%s`: %s", server.URL, err)
+	}
+    c := client.NewClient(trans)
+
+    ctx := context.Background()
+    if err := c.Start(ctx); err != nil {
+        return nil, fmt.Errorf("failed to start HTTP transport: %w", err)
+    }
+
+    initReq := mcp.InitializeRequest{
+		Params: mcp.InitializeParams{
+			ProtocolVersion: mcp.LATEST_PROTOCOL_VERSION,
+			ClientInfo: mcp.Implementation{
+				Name:    "my-mcp-client",
+				Version: "0.1.0",
+			},
+			Capabilities: mcp.ClientCapabilities{},
+		},
+	}
+
+    _, err2 := c.Initialize(ctx, initReq)
+    if err2 != nil {
+        return nil, fmt.Errorf("failed to initialize HTTP MCP server: %w", err2)
+    }
+
+    return c, nil
+}
+
+
 func main() {
 	cfg, errConfig := config.Load("config.toml")
 	if errConfig != nil {
@@ -60,6 +95,7 @@ func main() {
 	var mcpServers []*client.Client
 	var toolsDesc []string
 	var toolsForClaude []ant.ToolUnionParam 
+	toolToServer := map[string]*client.Client{}
 	ctx := context.Background()
 
 	for _, server := range cfg.MCP.Servers {
@@ -68,6 +104,35 @@ func main() {
 		switch server.Type {
 		case "http":
 			fmt.Printf(" -> URL: %s\n", server.URL)
+				client, err := ConnectMCPHTTPServer(server)
+				if err != nil {
+					log.Fatal(err)
+				}
+				mcpServers = append(mcpServers, client)
+
+				toolsRes, err := client.ListTools(ctx, mcp.ListToolsRequest{})
+				if err != nil {
+					log.Printf("error enviando tools/list a %s: %v", server.Name, err)
+					continue
+				}
+				for _, t := range toolsRes.Tools {
+					toolsDesc = append(toolsDesc,
+						fmt.Sprintf("- %s: %s", t.Name, t.Description))
+
+					toolsForClaude = append(toolsForClaude, ant.ToolUnionParam{
+						OfTool: &ant.ToolParam{
+							Name:        t.Name,
+							Description: param.NewOpt(t.Description),
+							InputSchema: ant.ToolInputSchemaParam{
+								Required:   t.InputSchema.Required,
+								Properties: t.InputSchema.Properties,
+							},
+						},
+					})
+					
+					toolToServer[t.Name] = client
+
+				}
 
 		case "stdio":
 			client, err := ConnectMCPServer(server)
@@ -95,9 +160,12 @@ func main() {
 							},
 						},	
 				})
+
+				toolToServer[t.Name] = client
 			}
 		}
 	}
+
 
 	// debug config
 	b, _ := json.MarshalIndent(cfg, "", "  ")
@@ -126,6 +194,7 @@ func main() {
 			break
 		}
 
+		logger.SaveLog(input, "(esperando respuesta de Claude...)")
 		history = append(history, ant.NewUserMessage(ant.NewTextBlock(input)))
 
 		resp, err := claude.Messages.New(ctx, ant.MessageNewParams{
@@ -139,17 +208,25 @@ func main() {
 			continue
 		}
 
+		var answer string
 		for _, block := range resp.Content {
 			if t := block.AsText(); t.Text != "" {
-				// respuesta normal de texto
-				fmt.Println("Claude:", t.Text)
-				history = append(history, ant.NewAssistantMessage(ant.NewTextBlock(t.Text)))
+				answer = t.Text
+				fmt.Println("Claude:", answer)
+				history = append(history, ant.NewAssistantMessage(ant.NewTextBlock(answer)))
+				logger.SaveLog(input, answer)
 			}
 
 			if toolUse := block.AsToolUse(); toolUse.Type == "tool_use" {
-				fmt.Printf("Claude quiere usar tool: %s con input: %+v\n", toolUse.Name, toolUse.Input)
+				inputJSON := string(toolUse.Input)
+				fmt.Printf("Claude quiere usar tool: %s con input: %s\n", toolUse.Name, inputJSON)
 
 				for _, c := range mcpServers {
+					if c != toolToServer[toolUse.Name] {
+						continue
+					}
+
+					logger.SaveLog(fmt.Sprintf("CALL tool %s", toolUse.Name), inputJSON)
 					callRes, err := c.CallTool(ctx, mcp.CallToolRequest{
 						Params: mcp.CallToolParams{
 							Name:      toolUse.Name,
@@ -163,6 +240,7 @@ func main() {
 
 					toolResultText := fmt.Sprintf("Tool %s result: %+v", toolUse.Name, callRes)
 					history = append(history, ant.NewAssistantMessage(ant.NewTextBlock(toolResultText)))
+					logger.SaveLog(fmt.Sprintf("RESULT tool %s", toolUse.Name), toolResultText)
 
 					followUp, err := claude.Messages.New(ctx, ant.MessageNewParams{
 						Model:     ant.Model("claude-3-haiku-20240307"),
@@ -178,6 +256,7 @@ func main() {
 						if t := c.AsText(); t.Text != "" {
 							fmt.Println("Claude (análisis):", t.Text)
 							history = append(history, ant.NewAssistantMessage(ant.NewTextBlock(t.Text)))
+							logger.SaveLog(fmt.Sprintf("ANALYSIS tool %s", toolUse.Name), t.Text)
 						}
 					}
 				}
