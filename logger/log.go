@@ -1,3 +1,4 @@
+// Package logger provides a simple utility for saving chat logs.
 package logger
 
 import (
@@ -5,7 +6,8 @@ import (
     "os"
     "time"
 )
-
+7// SaveLog appends a new log entry containing user input and bot response
+// into a file named chat.log with a timestamp.
 func SaveLog(input, response string) {
     f, err := os.OpenFile("chat.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
     if err != nil {

@@ -1,3 +1,8 @@
+// This program connects to multiple MCP servers (both HTTP and stdio),
+// integrates them with Anthropic's Claude model, and provides a CLI
+// where the user can interact with Claude. If Claude requests the use
+// of a tool, the program executes it through MCP servers and returns
+// the result back to Claude, maintaining a conversation history.
 package main
 
 import (
@@ -22,6 +27,7 @@ import (
 
 )
 
+// ConnectMCPServer establishes a connection to a stdio MCP server.
 func ConnectMCPServer(server config.MCPServer) (*client.Client, error) {
 	stdio := transport.NewStdio(server.Command, os.Environ(), server.Args...)
 	c := client.NewClient(stdio)
@@ -32,6 +38,7 @@ func ConnectMCPServer(server config.MCPServer) (*client.Client, error) {
 		return nil, fmt.Errorf("failed to start transport: %w", err)
 	}
 
+	// Initialize MCP session
 	initReq := mcp.InitializeRequest{
 		Params: mcp.InitializeParams{
 			ProtocolVersion: mcp.LATEST_PROTOCOL_VERSION,
@@ -51,6 +58,7 @@ func ConnectMCPServer(server config.MCPServer) (*client.Client, error) {
 	return c, nil
 }
 
+// ConnectMCPHTTPServer establishes a connection to an HTTP MCP server.
 func ConnectMCPHTTPServer(server config.MCPServer) (*client.Client, error) {
     trans, err := transport.NewStreamableHTTP(
 				server.URL,
@@ -65,6 +73,7 @@ func ConnectMCPHTTPServer(server config.MCPServer) (*client.Client, error) {
         return nil, fmt.Errorf("failed to start HTTP transport: %w", err)
     }
 
+	// Initialize MCP session
     initReq := mcp.InitializeRequest{
 		Params: mcp.InitializeParams{
 			ProtocolVersion: mcp.LATEST_PROTOCOL_VERSION,
@@ -86,6 +95,7 @@ func ConnectMCPHTTPServer(server config.MCPServer) (*client.Client, error) {
 
 
 func main() {
+	// Load configuration from config.toml
 	cfg, errConfig := config.Load("config.toml")
 	if errConfig != nil {
 		log.Fatal("Error cargando config.toml:", errConfig)
@@ -98,6 +108,7 @@ func main() {
 	toolToServer := map[string]*client.Client{}
 	ctx := context.Background()
 
+	// Connect to each MCP server and retrieve available tools
 	for _, server := range cfg.MCP.Servers {
 		fmt.Printf("Servidor MCP: %s (%s)\n", server.Name, server.Type)
 
@@ -110,6 +121,7 @@ func main() {
 				}
 				mcpServers = append(mcpServers, client)
 
+				// List available tools
 				toolsRes, err := client.ListTools(ctx, mcp.ListToolsRequest{})
 				if err != nil {
 					log.Printf("error enviando tools/list a %s: %v", server.Name, err)
@@ -150,6 +162,7 @@ func main() {
 				toolsDesc = append(toolsDesc,
 					fmt.Sprintf("- %s: %s", t.Name, t.Description))
 
+				// List available tools
 				toolsForClaude = append(toolsForClaude, ant.ToolUnionParam{
 						OfTool: &ant.ToolParam{
 							Name:        t.Name,
@@ -171,6 +184,7 @@ func main() {
 	b, _ := json.MarshalIndent(cfg, "", "  ")
 	fmt.Println(string(b))
 
+	// Load environment variables
 	if err := godotenv.Load(); err != nil {
 		log.Println("No se pudo cargar .env, usando variables de entorno del sistema")
 	}
@@ -179,7 +193,8 @@ func main() {
 	if apiKey == "" {
 		log.Fatal("Falta ANTHROPIC_API_KEY en el entorno")
 	}
-
+	
+	// Initialize Claude client
 	claude := ant.NewClient(option.WithAPIKey(apiKey))
 
 
@@ -197,6 +212,7 @@ func main() {
 		logger.SaveLog(input, "(esperando respuesta de Claude...)")
 		history = append(history, ant.NewUserMessage(ant.NewTextBlock(input)))
 
+		// Send request to Claude
 		resp, err := claude.Messages.New(ctx, ant.MessageNewParams{
 			Model:     ant.Model("claude-3-haiku-20240307"),
 			MaxTokens: 300,
@@ -209,6 +225,7 @@ func main() {
 		}
 
 		var answer string
+		// Handle Claude response and tool usage
 		for _, block := range resp.Content {
 			if t := block.AsText(); t.Text != "" {
 				answer = t.Text
@@ -217,6 +234,7 @@ func main() {
 				logger.SaveLog(input, answer)
 			}
 
+			// If Claude requests a tool
 			if toolUse := block.AsToolUse(); toolUse.Type == "tool_use" {
 				inputJSON := string(toolUse.Input)
 				fmt.Printf("Claude quiere usar tool: %s con input: %s\n", toolUse.Name, inputJSON)

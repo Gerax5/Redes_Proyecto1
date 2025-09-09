@@ -1,3 +1,4 @@
+// Package config loads and validates MCP server configuration from a TOML file.
 package config
 
 import (
@@ -7,6 +8,7 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+// MCPServer defines a single MCP server entry in the configuration.
 type MCPServer struct {
 	Name    string            `toml:"name"`
 	Type    string            `toml:"type"`    // "http" | "stdio"
@@ -16,14 +18,17 @@ type MCPServer struct {
 	Env     map[string]string `toml:"env"`
 }
 
+// MCPBlock groups multiple MCP servers.
 type MCPBlock struct {
 	Servers []MCPServer `toml:"servers"`
 }
 
+// Config is the root configuration struct.
 type Config struct {
 	MCP MCPBlock `toml:"mcp"`
 }
 
+// Load reads and validates a configuration from a TOML file.
 func Load(path string) (Config, error) {
 	var cfg Config
 	if _, err := os.Stat(path); err != nil {
