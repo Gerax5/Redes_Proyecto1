@@ -1,39 +1,43 @@
-# 🐁 Pokémon (hol demonio) MCP
+# 🐁 Pokémon (hola demonio) MCP
 
-Este proyecto implementa un servidor MCP que expone la PokeAPI como herramienta remota para integrarse con un chatbot.
+This project implements an MCP server that exposes the **PokeAPI** as a remote tool for integration with a chatbot.
 
-## ☁️ Usa el deploy
+---
 
-Server, el mcp esta en el endpint `/mcp`  
+## ☁️ Deployment
+
+The MCP server is available at the endpoint `/mcp`:  
 **https://redes-proyecto-mcp-673347929287.us-central1.run.app**
 
-usar:  
+Use it directly at:  
 **https://redes-proyecto-mcp-673347929287.us-central1.run.app/mcp**
 
-## 📦 Instalación
+---
 
-1. _Clonar Repositorio_
+## 📦 Installation
+
+1. **Clone the repository**
 
 ```bash
 git clone https://github.com/Gerax5/Redes_Proyecto1.git
 cd RemoteServer
 ```
 
-2. _Instalar depedencias_
+2. **Install dependencies**
 
 ```bash
 pip install fastapi uvicorn requests
 ```
 
-3. _Inicia el servidor_
+3. **Start the server**
 
 ```bash
 uvicorn server:app --reload --port 8080
 ```
 
-## 🧐 Implementarlo
+## 🧐 Integration
 
-Para usar este MCP en tu cliente:
+To use this MCP in your client, add the following block to your configuration file:
 
 ```toml
 [mcp]
@@ -42,3 +46,66 @@ name = "pokemon"
 type = "http"
 url = "http://localhost:8080/mcp"
 ```
+
+## 🛠️ Endpoints
+
+The server exposes the following endpoints:
+
+### `GET /`
+
+- Returns a simple health check message:
+  ```json
+  { "message": "Hello from Pokemon MCP!" }
+  ```
+
+### `POST /mcp`
+
+Implements the MCP protocol with JSON-RPC methods:
+
+- `initialize`
+  Initializes the MCP client-server handshake.
+
+  ````json
+  {
+  "method": "initialize",
+  "id": 1
+  }
+
+      ```
+
+  ````
+
+- `tools/list`
+  Lists the available tools. In this case, it exposes:
+  - get_pokemon: Lookup detailed Pokémon stats and types.
+- `tools/call`
+  Executes a tool. For example, to retrieve info about Pikachu:
+
+  ```json
+  {
+    "method": "tools/call",
+    "id": 2,
+    "params": {
+      "arguments": {
+        "name": "pikachu"
+      }
+    }
+  }
+  ```
+
+  Response example:
+
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "id": 2,
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "Pokémon Pikachu (ID 25): Types: electric, Stats: {...}"
+        }
+      ]
+    }
+  }
+  ```

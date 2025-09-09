@@ -33,10 +33,10 @@ The program allows interactive conversations with Claude, including the ability 
 
 Before running the project, you must install **Go** (version 1.21 or higher):
 
-1. Download Go from the official website:  
+1. **Download Go from the official website:**  
    [https://go.dev/dl/](https://go.dev/dl/)
 
-2. Follow the installation instructions for your operating system:
+2. **Follow the installation instructions for your operating system:**
 
    - **Linux/macOS**: Extract the archive to `/usr/local` and add Go to your PATH:
      ```bash
@@ -45,7 +45,7 @@ Before running the project, you must install **Go** (version 1.21 or higher):
      ```
    - **Windows**: Run the `.msi` installer and follow the wizard.
 
-3. Verify the installation:
+3. **Verify the installation:**
    ```bash
    go version
    ```
@@ -56,14 +56,14 @@ Before running the project, you must install **Go** (version 1.21 or higher):
 
 ## 📦 Installation
 
-1. Clone the repository:
+1. **Clone the repository:**
 
    ```bash
    git clone https://github.com/Gerax5/MCP_Server
    cd MCP_Server
    ```
 
-2. Initialize and update submodules:
+2. **Initialize and update submodules:**
    ````bash`
    git submodule update --init --recursive
 
@@ -71,19 +71,19 @@ Before running the project, you must install **Go** (version 1.21 or higher):
 
    ```
 
-3. Install dependencies:
+3. **Install dependencies:**
 
    ```bash
    go mod tidy
    ```
 
-4. Create a `.env` file with your Anthropic API key:
+4.**Create a `.env` file with your Anthropic API key:**
 
-   ```bash
-   ANTHROPIC_API_KEY=your_api_key_here
-   ```
+```bash
+ANTHROPIC_API_KEY=your_api_key_here
+```
 
-5. Create a `config.toml` file to define MCP servers:
+5. **Create a `config.toml` file to define MCP servers:**
 
    ```bash
    [mcp]
