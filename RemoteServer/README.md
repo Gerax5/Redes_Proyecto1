@@ -35,7 +35,7 @@ uvicorn server:app --reload --port 8080
 
 Para usar este MCP en tu cliente:
 
-```json
+```toml
 [mcp]
 [[mcp.servers]]
 name = "pokemon"
