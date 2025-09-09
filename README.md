@@ -54,6 +54,8 @@ Before running the project, you must install **Go** (version 1.21 or higher):
    go version go1.21.0 linux/amd64
    ```
 
+---
+
 ## 📦 Installation
 
 1. **Clone the repository:**
@@ -77,11 +79,11 @@ Before running the project, you must install **Go** (version 1.21 or higher):
    go mod tidy
    ```
 
-4.**Create a `.env` file with your Anthropic API key:**
+4. **Create a `.env` file with your Anthropic API key:**
 
-```bash
-ANTHROPIC_API_KEY=your_api_key_here
-```
+   ```bash
+   ANTHROPIC_API_KEY=your_api_key_here
+   ```
 
 5. **Create a `config.toml` file to define MCP servers:**
 
@@ -99,6 +101,8 @@ ANTHROPIC_API_KEY=your_api_key_here
    url = "https://redes-proyecto-mcp-673347929287.us-central1.run.app/mcp"
    ```
 
+---
+
 ## 🌵 Usage
 
 Run the program:
@@ -106,6 +110,8 @@ Run the program:
 ```bash
 go run main.go
 ```
+
+---
 
 ## 📩 Logs
 
