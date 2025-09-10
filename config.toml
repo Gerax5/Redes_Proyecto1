@@ -3,7 +3,7 @@
 name = "youtube"              
 type = "stdio"    
 command = "Python3"                   
-args  = ["../MCP_Server/Server.py"]  
+args  = ["./MCP_Server/Server.py"]  
 
 [[mcp.servers]]
 name = "filesystem"
@@ -26,6 +26,11 @@ name = "falvio"
 type = "http"
 url = "http://localhost:8080/mcp"
 
+[[mcp.servers]]
+name = "rayo"
+type = "stdio"
+command = "python3"
+args = ["../GRAPH-CP/server.py"]
 
 [[mcp.servers]]
 name = "pokemon"
