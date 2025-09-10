@@ -1,5 +1,7 @@
 __pycache__
 
+RemoteServer/__pycache__
+
 .env
 config.doc
 dummy_mcp.py
