@@ -122,3 +122,8 @@ All interactions are saved in a file called `chat.log` with timestamps:
 User: Hello
 Bot: Hi there! How can I help you today?
 ```
+
+## 🤓 Referencias
+
+En el propio repo de mcp-go esta como implementarlo del lado del servidor y del lado del cliente
+https://github.com/mark3labs/mcp-go
