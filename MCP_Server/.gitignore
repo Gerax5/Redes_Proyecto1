@@ -1,5 +1,0 @@
-*.lock
-
-.env
-.venv
-mcp_debug.txt
