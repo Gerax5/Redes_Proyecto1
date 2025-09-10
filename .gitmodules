@@ -1,0 +1,3 @@
+[submodule "MCP_Server"]
+	path = MCP_Server
+	url = https://github.com/Gerax5/MCP_Server
