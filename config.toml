@@ -21,11 +21,11 @@ type = "stdio"
 command = "uvx"
 args = ["mcp-server-git"]
 
-
 [[mcp.servers]]
-name = "flavio2"
+name = "falvio"
 type = "http"
-url = "https://redes-remotemcpserver.fly.dev/mcp"
+url = "http://localhost:8080/mcp"
+
 
 [[mcp.servers]]
 name = "pokemon"

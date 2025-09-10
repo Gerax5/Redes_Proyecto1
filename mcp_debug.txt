@@ -349,3 +349,17 @@ args = [
 [2025-09-09T15:10:31.427157] Ignoring notification: notifications/initialized
 [2025-09-09T15:10:31.427157] Received: {'jsonrpc': '2.0', 'id': 2, 'method': 'tools/list', 'params': {}}
 [2025-09-09T15:10:31.428174] Sent: {'jsonrpc': '2.0', 'id': 2, 'result': {'tools': [{'name': 'youtube_analysis', 'title': 'YouTube Analysis', 'description': 'Analiza la comunidad, audiencia, seguidores y comentarios de canales de YouTube para entender su demografía y comportamiento', 'inputSchema': {'type': 'object', 'properties': {'channel': {'type': 'string'}, 'max_comments': {'type': 'integer', 'default': 100}, 'top_words': {'type': 'integer', 'default': 5}}, 'required': ['channel']}}]}}
+[2025-09-09T23:00:13.810961] Server started
+[2025-09-09T23:00:13.811969] Received: {'jsonrpc': '2.0', 'id': 1, 'method': 'initialize', 'params': {'protocolVersion': '2025-06-18', 'clientInfo': {'name': 'my-mcp-client', 'version': '0.1.0'}, 'capabilities': {}}}
+[2025-09-09T23:00:13.811969] Sent: {'jsonrpc': '2.0', 'id': 1, 'result': {'protocolVersion': '2025-06-18', 'capabilities': {'tools': {'listChanged': True}}, 'resources': {}, 'serverInfo': {'name': 'youtube', 'version': '1.0.0'}}}
+[2025-09-09T23:00:13.813301] Received: {'jsonrpc': '2.0', 'method': 'notifications/initialized', 'params': {}}
+[2025-09-09T23:00:13.813301] Ignoring notification: notifications/initialized
+[2025-09-09T23:00:13.813893] Received: {'jsonrpc': '2.0', 'id': 2, 'method': 'tools/list', 'params': {}}
+[2025-09-09T23:00:13.814454] Sent: {'jsonrpc': '2.0', 'id': 2, 'result': {'tools': [{'name': 'youtube_analysis', 'title': 'YouTube Analysis', 'description': 'Analiza la comunidad, audiencia, seguidores y comentarios de canales de YouTube para entender su demografía y comportamiento', 'inputSchema': {'type': 'object', 'properties': {'channel': {'type': 'string'}, 'max_comments': {'type': 'integer', 'default': 100}, 'top_words': {'type': 'integer', 'default': 5}}, 'required': ['channel']}}]}}
+[2025-09-09T23:03:02.118039] Server started
+[2025-09-09T23:03:02.119089] Received: {'jsonrpc': '2.0', 'id': 1, 'method': 'initialize', 'params': {'protocolVersion': '2025-06-18', 'clientInfo': {'name': 'my-mcp-client', 'version': '0.1.0'}, 'capabilities': {}}}
+[2025-09-09T23:03:02.119982] Sent: {'jsonrpc': '2.0', 'id': 1, 'result': {'protocolVersion': '2025-06-18', 'capabilities': {'tools': {'listChanged': True}}, 'resources': {}, 'serverInfo': {'name': 'youtube', 'version': '1.0.0'}}}
+[2025-09-09T23:03:02.121054] Received: {'jsonrpc': '2.0', 'method': 'notifications/initialized', 'params': {}}
+[2025-09-09T23:03:02.121659] Ignoring notification: notifications/initialized
+[2025-09-09T23:03:02.122206] Received: {'jsonrpc': '2.0', 'id': 2, 'method': 'tools/list', 'params': {}}
+[2025-09-09T23:03:02.123254] Sent: {'jsonrpc': '2.0', 'id': 2, 'result': {'tools': [{'name': 'youtube_analysis', 'title': 'YouTube Analysis', 'description': 'Analiza la comunidad, audiencia, seguidores y comentarios de canales de YouTube para entender su demografía y comportamiento', 'inputSchema': {'type': 'object', 'properties': {'channel': {'type': 'string'}, 'max_comments': {'type': 'integer', 'default': 100}, 'top_words': {'type': 'integer', 'default': 5}}, 'required': ['channel']}}]}}
