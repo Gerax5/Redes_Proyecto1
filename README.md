@@ -127,3 +127,6 @@ Bot: Hi there! How can I help you today?
 
 En el propio repo de mcp-go esta como implementarlo del lado del servidor y del lado del cliente
 https://github.com/mark3labs/mcp-go
+
+Pagina de donde me base para hacer el protocolo:
+https://modelcontextprotocol.io/docs/learn/architecture#example
