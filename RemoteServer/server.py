@@ -1,4 +1,3 @@
-# pokemon_server.py
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 import requests
